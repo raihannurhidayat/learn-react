@@ -3,7 +3,7 @@ import Button from '../Elements/button'
 
 const CardProduct = ({ children }) => {
   return (
-    <div className='w-full max-w-sm bg-gray-800 border border-gray-700 rounded-lg shadow mx-3 flex-col flex justify-between'>
+    <div className='w-full max-w-xs bg-gray-800 border border-gray-700 rounded-lg shadow mx-3 flex-col flex justify-between mb-3'>
       {children}
     </div>
   )
@@ -28,11 +28,11 @@ const Body = ({ children, name }) => {
   )
 }
 
-const Footer = ({ price }) => {
+const Footer = ({ price, handleAddCart, id }) => {
   return (
     <div className="flex items-center justify-between px-5 pb-5">
-      <span className='text-3xl font-bold text-white'>{price}</span>
-      <Button action='Add to Card' variant='bg-blue-600' />
+      <span className='text-3xl font-bold text-white'>Rp.{price}</span>
+      <Button action='Add to Card' variant='bg-blue-600' onClick={() => handleAddCart(id)} />
     </div>
   )
 }
