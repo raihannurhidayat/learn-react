@@ -1,29 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Button from '../components/Elements/button'
 import CardProduct from '../components/Fragments/CardProduct'
+import { getProducts } from '../services/product.service'
+import { getUsername } from '../services/auth.service'
 
-const products = [
-  {
-    id: 1,
-    name: "walpaper baru",
-    price: 1000000,
-    images: "/images/product1.png",
-    description: "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quod, facere a eum animi fuga tempora, quo iste at quae eveniet minima, illo natus ullam laborum veniam dolor doloribus amet molestiae quidem? Repudiandae deserunt dignissimos inventore delectus molestiae ab id? Illo ut molestias odit veniam consectetur dignissimos. Sint consectetur deserunt vero!"
-  },
-  {
-    id: 2,
-    name: "walpaper lama",
-    price: 500000,
-    images: "/images/product1.png",
-    description: "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quod, facere a eum animi fuga tempora, quo iste at quae eveniet minima, illo natus ullam laborum veniam dolor doloribus amet molestiae quidem?"
-  },
-]
-
-const email = localStorage.getItem('email')
 
 const handleLogout = () => {
-  localStorage.removeItem('email')
-  localStorage.removeItem('password')
+  localStorage.removeItem('token')
   window.location.href = '/login'
 }
 
@@ -31,13 +14,31 @@ const handleLogout = () => {
 const ProductsPage = () => {
   const [cart, setCart] = useState([])
   const [totalPrice, seTotalPrice] = useState(0)
+  const [products, setProducts] = useState([])
+  const [username, setUsername] = useState('')
 
   useEffect(() => {
     setCart(JSON.parse(localStorage.getItem('cart')) || [])
   }, [])
 
   useEffect(() => {
-    if (cart.length > 0) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      setUsername(getUsername(token))
+    } else {
+      
+      window.location.href = '/login'
+    }
+  }, [])
+
+  useEffect(() => {
+    getProducts((data) => {
+      setProducts(data)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (products.length > 0 && cart.length > 0) {
       const sum = cart.reduce((acc, item) => {
         const product = products.find((product) => product.id == item.id)
         return acc + product.price * item.quantity
@@ -45,7 +46,7 @@ const ProductsPage = () => {
       seTotalPrice(sum)
       localStorage.setItem('cart', JSON.stringify(cart))
     }
-  }, [cart])
+  }, [cart, products])
 
   const handleAddCart = (id) => {
     if (cart.find((item) => item.id == id)) {
@@ -61,28 +62,18 @@ const ProductsPage = () => {
     }
   }
 
-  // useReff start
-  const carHref = useRef([
-    {
-      id: 1,
-      quantity: 1
-    }
-  ])
-  // useReff end
-
-
   return (
     <>
       <div className='flex justify-end h-20 bg-blue-600 text-white items-center px-10'>
-        {email}
+        {username}
         <Button className="ml-5" action='logout' onClick={handleLogout} />
       </div>
       <div className='flex justify-center py-5'>
         <div className="w-3/4 flex flex-wrap">
-          {products.map((product) => (
+          {products.length > 0 && products.map((product) => (
             <CardProduct key={product.id}>
-              <CardProduct.Header images={product.images} />
-              <CardProduct.Body name={product.name}>
+              <CardProduct.Header images={product.image} />
+              <CardProduct.Body name={product.title}>
                 {product.description}
               </CardProduct.Body>
               <CardProduct.Footer price={product.price} handleAddCart={handleAddCart} id={product.id} />
@@ -101,21 +92,21 @@ const ProductsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {cart.map((item, key) => {
+              {products.length > 0 && cart.map((item, key) => {
                 const product = products.find((product) => product.id == item.id)
                 return (
                   <tr key={key}>
-                    <td>{product.name}</td>
+                    <td>{product.title.substring(0, 10)}...</td>
                     <td>{product.price}</td>
                     <td>{item.quantity}</td>
-                    <td>Rp.{item.quantity * product.price}</td>
+                    <td>$.{item.quantity * product.price}</td>
                   </tr>
                 )
               })}
               <tr>
 
                 <td colSpan={3}><b>Total Price</b></td>
-                <td>Rp. {totalPrice}</td>
+                <td>$.{totalPrice}</td>
               </tr>
             </tbody>
           </table>
